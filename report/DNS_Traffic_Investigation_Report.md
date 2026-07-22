@@ -1,90 +1,150 @@
 DNS Traffic Investigation Report
+Author
 
-Author: Mubarak Bashr
-Project: DNS Traffic Investigation
-Environment: Kali Linux, Ubuntu Linux, Wireshark
-Date: July 2026
+Mubarak Bashr
 
-Abstract
+Project Overview
 
-This report documents a DNS Traffic Investigation performed in an isolated virtual laboratory. The objective was to generate DNS traffic, capture network packets using Wireshark, analyze DNS queries and responses, identify failed lookups (NXDOMAIN), and understand DNS communication behavior. The investigation demonstrates practical DNS analysis techniques commonly used in SOC environments and network forensic investigations.
+This project demonstrates a DNS Traffic Investigation performed in an isolated virtual laboratory using Kali Linux, Ubuntu Linux, and Wireshark. The objective was to generate DNS traffic, capture packets, analyze DNS communication, identify failed lookups, and document the investigation process.
 
 Objectives
-Capture DNS traffic using Wireshark.
+Generate legitimate DNS traffic.
+Capture DNS packets using Wireshark.
 Analyze DNS queries and responses.
-Examine A and AAAA DNS records.
-Investigate DNS protocol behavior.
-Identify unsuccessful DNS lookups (NXDOMAIN).
-Practice packet filtering and protocol analysis.
+Investigate A and AAAA record lookups.
+Identify NXDOMAIN responses.
+Review protocol statistics.
+Analyze endpoints and conversations.
+Practice Wireshark display filters.
 Lab Environment
 Component	Details
 Monitoring Machine	Ubuntu Linux
 Client Machine	Kali Linux
 Packet Analyzer	Wireshark 4.6.4
-DNS Utilities	nslookup, dig
-Network Interface	ens33
-Network Type	VMware Virtual Network
+DNS Tools	nslookup, dig
+Network	VMware Virtual Network
+Interface	ens33
 Investigation Procedure
+1. System Preparation
 
-The Ubuntu and Kali Linux systems were updated before starting the investigation. The network configuration was verified to ensure proper connectivity between both virtual machines.
+Both Ubuntu and Kali Linux machines were updated before beginning the investigation.
 
-DNS utilities were installed on Kali Linux, and several DNS queries were generated using nslookup and dig. Domains including bitpluss.com, github.com, ubuntu.com, google.com, microsoft.com, openai.com, and kali.org were queried successfully.
+Ubuntu detected one upgradeable package that remained pending because of Ubuntu's package phasing mechanism.
 
-A fake domain (fake-domain-12345.local) was queried intentionally to generate an NXDOMAIN response for analysis.
+Kali Linux was already fully updated.
 
-Wireshark captured all traffic on the ens33 interface while DNS requests were generated.
+2. Network Verification
 
-Traffic Statistics
+The network interface was verified using the following command:
+
+ip a
+
+The active interface was ens33 with the IPv4 address:
+
+192.168.81.129/24
+3. DNS Traffic Generation
+
+DNS traffic was generated using several domains including:
+
+bitpluss.com
+github.com
+ubuntu.com
+google.com
+microsoft.com
+openai.com
+kali.org
+
+The following tools were used:
+
+nslookup
+dig
+4. Simulated Failed DNS Query
+
+A fake domain was intentionally queried:
+
+fake-domain-12345.local
+
+The DNS server returned:
+
+NXDOMAIN
+
+This simulated an unsuccessful DNS lookup for investigation purposes.
+
+5. Packet Capture
+
+Wireshark was launched on Ubuntu.
+
+The ens33 interface was selected.
+
+Traffic was captured while DNS requests were generated from Kali Linux.
+
+The capture was saved as:
+
+dns-traffic-investigation.pcapng
+Traffic Analysis
+Capture Statistics
 Item	Value
 Total Packets	2212
 Capture Duration	7 Minutes 46 Seconds
-DNS Packets	52
-DNS Queries	30
-DNS Responses	26
-Failed DNS Queries	1
-UDP Packets	157
-Protocol Analysis
+Average Packets/sec	4.7
+Average Data Rate	35 KB/sec
+Protocol Hierarchy
 
-Protocol hierarchy analysis showed that IPv4 represented approximately 97.8% of captured packets.
+Analysis showed:
 
-TCP generated most of the network traffic, while TLS accounted for the majority of transferred data. DNS traffic represented approximately 2.4% of all captured packets and operated over UDP port 53. NTP and ARP traffic were also observed during the capture.
-
+IPv4 represented approximately 97.8% of packets.
+TCP generated the majority of traffic.
+TLS transferred the largest amount of data.
+DNS represented approximately 2.4% of captured packets.
+UDP was mainly used for DNS and NTP communication.
 Endpoint Analysis
 
-Endpoint analysis identified thirteen IPv4 endpoints. The Ubuntu monitoring machine generated the majority of network traffic. Communication with external servers occurred normally during DNS resolution and encrypted web connections.
+The capture identified multiple IPv4 endpoints.
+
+The Ubuntu monitoring machine generated most of the traffic.
+
+The external server 151.101.210.49 exchanged approximately 2 MB of traffic during the capture.
 
 Conversation Analysis
 
-Conversation statistics displayed twelve IPv4 conversations.
+Wireshark Conversations identified twelve IPv4 conversations.
 
-The largest communication occurred between the Ubuntu machine and an external server, while smaller conversations included DNS and NTP traffic.
+The largest communication occurred between:
 
-No suspicious communication patterns were identified.
+192.168.81.129
+↓
+
+151.101.210.49
+
+Additional DNS and NTP conversations were also observed.
 
 Wireshark Filters Used
-Filter	Description
-dns	Display all DNS packets
+Filter	Purpose
+dns	Show all DNS packets
 dns.flags.response == 0	DNS queries only
 dns.flags.response == 1	DNS responses only
-dns.qry.type == 1	A record queries
-dns.qry.type == 28	AAAA record queries
-udp	Display all UDP packets
-udp.port == 53	DNS traffic over UDP
-dns.flags.rcode != 0	DNS responses containing errors
-Findings
-DNS traffic was successfully captured.
-All legitimate domains resolved correctly.
-DNS communication occurred through UDP port 53.
-IPv4 and IPv6 records were successfully returned.
+dns.qry.type == 1	A records
+dns.qry.type == 28	AAAA records
+udp	UDP traffic
+udp.port == 53	DNS over UDP
+dns.flags.rcode != 0	DNS errors
+Key Findings
+DNS communication operated normally using UDP port 53.
+Multiple legitimate domains resolved successfully.
+IPv4 and IPv6 addresses were returned correctly.
 One intentionally generated fake domain produced an NXDOMAIN response.
-No abnormal DNS behavior or DNS tunneling was detected.
-Key Evidence
-Evidence	Value
-Capture File	dns-traffic-investigation.pcapng
-Failed Domain	fake-domain-12345.local
-Error Type	NXDOMAIN
-Query Packet	2189
-Response Packet	2190
+No suspicious DNS tunneling or abnormal DNS behavior was detected.
+Evidence
+Capture File
+dns-traffic-investigation.pcapng
+Failed DNS Query
+fake-domain-12345.local
+Response
+NXDOMAIN
+Query Packet
+2189
+Response Packet
+2190
 Conclusion
 
-The DNS Traffic Investigation successfully demonstrated how DNS traffic can be generated, captured, filtered, and analyzed using Wireshark. The investigation confirmed normal DNS communication patterns and documented a controlled NXDOMAIN event for forensic analysis. This project provided practical experience in DNS monitoring, packet analysis, and Wireshark filtering techniques commonly used in Security Operations Center (SOC) environments.
+The DNS Traffic Investigation successfully demonstrated how DNS requests and responses can be generated, captured, and analyzed using Wireshark. The project verified normal DNS communication patterns while documenting a controlled NXDOMAIN event. Protocol hierarchy, endpoint statistics, conversation analysis, and Wireshark filtering techniques provided valuable insight into DNS traffic behavior within a secure laboratory environment.
